@@ -137,7 +137,7 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 		
 		
 		if(($lastday <= $i_dia)){// || $s_dia == 'V')){// && $lastday != 8){
-			$s_tabla .= "<tr><td colspan='6' style='background-color:#585858;text-align:right'>&#8593;".$tiempo_semana['horas']."h ".$tiempo_semana['minutos']."min&#8593;</td></tr>";
+			$s_tabla .= "<tr><td colspan='6' style='background-color:#585858;text-align:right;color:white;'>&#8593;".$tiempo_semana['horas']."h ".$tiempo_semana['minutos']."min&#8593;</td></tr>";
 			$tiempo_semana = array('horas'=>0,'minutos'=>0);
 		}
 		
@@ -175,7 +175,7 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 		}
 		$lastday = $i_dia;
 	}
-	$s_tabla .= "</table>";
+	$s_tabla .= "<tr><td colspan='6' style='background-color:#585858;text-align:right;color:white;'>&#8593;".$tiempo_semana['horas']."h ".$tiempo_semana['minutos']."min&#8593;</td></tr></table>";
 }
 
 $s_botones = "<p style='text-align:right;'><input type='button' onclick='javascript:document.location.href = document.location.href;' value='Recargar' />".$s_botones."</p>";
