@@ -15,7 +15,8 @@ $horas_dia = 8;
 $minutos_dia = 30;
 $minutos_comida = 30;
 $horas_viernes = 6;
-$minutos_comida_viernes = 0;
+$minutos_comida_viernes = 30;
+$b_recuperar_comida = false;
 
 $db_host = 'localhost';
 $db_user = 'root';
@@ -96,11 +97,14 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 				$horaestimada = strtotime('+'.$minutos_comida.' minute', $horaestimada);
 			}else{
 				$horaestimada = strtotime('+'.$comida_m.' minute', $horaestimada);
+				if(!$b_recuperar_comida){
+					$horaestimada = strtotime('-'.$minutos_comida.' minute', $horaestimada);
+				}
 			}
 			$s_estimated = "<small>(&#126;".date("H:i:s",$horaestimada).")</small>";
 		}
 		
-		if(isset($comida_s)){
+		if(isset($comida_s) && $b_recuperar_comida){
 			$total -= $comida_s;
 		}
 		
@@ -159,9 +163,6 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 		}
 		$i++;
 		
-		
-		$s_tabla .= "<tr".$background."><td>".$fila["dia"]." (".$s_dia.")</td><td>".$fila["ip"]."</td><td>".$fila["entrada"]."</td><td>".$fila["comida"]." - ".$fila["vuelta"]." ".$s_comida."</td><td>".$fila["salida"]."</td><td>".$s_total." ".$s_estimated."</td></tr>";
-		
 		if($s_dia == "V"){
 			if($fila["salida"] == ""){
 				$horaestimada = strtotime('+'.$horas_viernes.' hour', strtotime($fila["entrada"]));
@@ -169,10 +170,15 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 					$horaestimada = strtotime('+'.$minutos_comida_viernes.' minute', $horaestimada);
 				}else{
 					$horaestimada = strtotime('+'.$comida_m.' minute', $horaestimada);
+					if(!$b_recuperar_comida){
+						$horaestimada = strtotime('-'.$minutos_comida_viernes.' minute', $horaestimada);
+					}
 				}
 				$s_estimated = "<small>(&#126;".date("H:i:s",$horaestimada).")</small>";
 			}
 		}
+		$s_tabla .= "<tr".$background."><td>".$fila["dia"]." (".$s_dia.")</td><td>".$fila["ip"]."</td><td>".$fila["entrada"]."</td><td>".$fila["comida"]." - ".$fila["vuelta"]." ".$s_comida."</td><td>".$fila["salida"]."</td><td>".$s_total." ".$s_estimated."</td></tr>";
+		
 		$lastday = $i_dia;
 	}
 	$s_tabla .= "<tr><td colspan='6' style='background-color:#585858;text-align:right;color:white;'>&#8593;".$tiempo_semana['horas']."h ".$tiempo_semana['minutos']."min&#8593;</td></tr></table>";
