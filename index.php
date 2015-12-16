@@ -64,7 +64,7 @@ if($resultado = mysql_query("SELECT * FROM registro WHERE dia = '".$dia."' AND i
 $s_tabla = "<center>No hay datos</center>";
 
 if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
-	$s_tabla = "<table border='1' width='100%'><tr><td>D&iacute;a</td><td>IP</td><td>Entrada</td><td>Comida</td><td>Salida</td><td>Horas</td></tr>";
+	$s_tabla = "\t<table border='1' width='100%'>".PHP_EOL."\t\t<tr><th>D&iacute;a</th><th>IP</th><th>Entrada</th><th>Comida</th><th>Salida</th><th>Horas</th></tr>".PHP_EOL;
 	$i = 0;
 	$lastday = 8;
 	$b_show_separador = false;
@@ -94,7 +94,9 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 			$horaestimada = strtotime('+'.$horas_dia.' hour', strtotime($fila["entrada"]));
 			$horaestimada = strtotime('+'.$minutos_dia.' minute', $horaestimada);
 			if($fila["vuelta"] == ""){
-				$horaestimada = strtotime('+'.$minutos_comida.' minute', $horaestimada);
+				if($b_recuperar_comida){
+					$horaestimada = strtotime('+'.$minutos_comida.' minute', $horaestimada);
+				}
 			}else{
 				$horaestimada = strtotime('+'.$comida_m.' minute', $horaestimada);
 				if(!$b_recuperar_comida){
@@ -141,7 +143,7 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 		
 		
 		if(($lastday <= $i_dia)){// || $s_dia == 'V')){// && $lastday != 8){
-			$s_tabla .= "<tr><td colspan='6' style='background-color:#585858;text-align:right;color:white;'>&#8593;".$tiempo_semana['horas']."h ".$tiempo_semana['minutos']."min&#8593;</td></tr>";
+			$s_tabla .= "\t\t<tr><td colspan='6' class='semana'>&#8593;".$tiempo_semana['horas']."h ".$tiempo_semana['minutos']."min&#8593;</td></tr>".PHP_EOL;
 			$tiempo_semana = array('horas'=>0,'minutos'=>0);
 		}
 		
@@ -152,22 +154,31 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 			$tiempo_semana['horas'] = $tiempo_semana['horas'] + 1;
 		}
 		
-		if($fila["dia"] == $dia){
-			$fila["dia"] = "<b>".$fila["dia"]."</b>";
-		}
-		
 		if(($i%2) == 0){
 			$background = "";
 		}else{
-			$background = " style='background-color:#F2F2F2;'";
+			$background = " class='impar'";
 		}
 		$i++;
+		
+		
+		if($i == 1){
+			$ultimo_dia = $fila['dia'];
+		}else{
+			$primer_dia = $fila['dia'];
+		}
+		
+		if($fila["dia"] == $dia){
+			$fila["dia"] = "<b>".$fila["dia"]."</b>";
+		}
 		
 		if($s_dia == "V"){
 			if($fila["salida"] == ""){
 				$horaestimada = strtotime('+'.$horas_viernes.' hour', strtotime($fila["entrada"]));
 				if($fila["vuelta"] == ""){
-					$horaestimada = strtotime('+'.$minutos_comida_viernes.' minute', $horaestimada);
+					if($b_recuperar_comida){
+						$horaestimada = strtotime('+'.$minutos_comida_viernes.' minute', $horaestimada);
+					}
 				}else{
 					$horaestimada = strtotime('+'.$comida_m.' minute', $horaestimada);
 					if(!$b_recuperar_comida){
@@ -177,15 +188,62 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 				$s_estimated = "<small>(&#126;".date("H:i:s",$horaestimada).")</small>";
 			}
 		}
-		$s_tabla .= "<tr".$background."><td>".$fila["dia"]." (".$s_dia.")</td><td>".$fila["ip"]."</td><td>".$fila["entrada"]."</td><td>".$fila["comida"]." - ".$fila["vuelta"]." ".$s_comida."</td><td>".$fila["salida"]."</td><td>".$s_total." ".$s_estimated."</td></tr>";
+		$s_tabla .= "\t\t<tr".$background."><td>".$fila["dia"]." (".$s_dia.")</td><td>".$fila["ip"]."</td><td>".$fila["entrada"]."</td><td>".$fila["comida"]." - ".$fila["vuelta"]." ".$s_comida."</td><td>".$fila["salida"]."</td><td>".$s_total." ".$s_estimated."</td></tr>".PHP_EOL;
 		
 		$lastday = $i_dia;
 	}
-	$s_tabla .= "<tr><td colspan='6' style='background-color:#585858;text-align:right;color:white;'>&#8593;".$tiempo_semana['horas']."h ".$tiempo_semana['minutos']."min&#8593;</td></tr></table>";
+	$s_tabla .= "\t\t<tr><td colspan='6' class='semana'>&#8593;".$tiempo_semana['horas']."h ".$tiempo_semana['minutos']."min&#8593;</td></tr>".PHP_EOL."\t</table>".PHP_EOL;
 }
 
-$s_botones = "<p style='text-align:right;'><input type='button' onclick='javascript:document.location.href = document.location.href;' value='Recargar' />".$s_botones."</p>";
 
-echo $s_botones.$s_tabla."<br/><small>Total: ".$i." d&iacute;as</small>";
+$s_botones = "<p style='text-align:right;'>".$s_botones."<input type='button' onclick='javascript:document.location.href = location.protocol+`//`+location.host+location.pathname' value='Recargar' /></p>".PHP_EOL;
 
 
+$a_interval = date_diff(date_create($primer_dia),date_create($ultimo_dia));
+$diff_time = $a_interval->days;
+
+
+?><!DOCTYPE HTML>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<title>Horario</title>
+	<style>
+		body{
+			font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+			font-size: 82.5%;
+			color: #555555;
+		}
+		input{
+			font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+			font-size: 82.5%;
+			cursor:pointer;
+		}
+		table, th, td {
+			padding-left:2px;
+			padding-right:2px;
+			border-collapse: collapse;
+			border:solid 1px black;
+			
+		}
+		.semana{
+			background-color:#585858;
+			text-align:right;
+			color:white;
+			font-size: 75%;
+		}
+		.impar{
+			background-color:#F2F2F2;
+		}
+		th{
+			background-color:#585858;
+			color:white;
+		}
+	</style>
+</head>
+<body>
+	
+	<?=$s_botones.$s_tabla.PHP_EOL."\t<p>Total: ".$i." d&iacute;as trabajados (de un total de ".$diff_time.")</p>"?>
+	
+</body>
+</html>
