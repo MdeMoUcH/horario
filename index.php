@@ -8,7 +8,7 @@
  **************************/
  
 /*** Para la base de datos: ***/
-/* CREATE TABLE `registro` (`id` int(11) NOT NULL AUTO_INCREMENT, `dia` varchar(15) NOT NULL, `ip` varchar(15) NOT NULL, `entrada` varchar(8) NOT NULL, `comida` varchar(8) NOT NULL, `vuelta` varchar(8) NOT NULL, `salida` varchar(8) NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8; */
+/* CREATE TABLE `registro` (   `id` int(11) NOT NULL AUTO_INCREMENT,   `dia` varchar(15) NOT NULL default '',   `ip` varchar(15) NOT NULL default '',   `entrada` varchar(8) NOT NULL default '',   `comida` varchar(8) NOT NULL default '',   `vuelta` varchar(8) NOT NULL default '',   `salida` varchar(8) NOT NULL default '',   PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8; */
 
 /*** Configuración: ***/
 $horas_dia = 8;
@@ -19,9 +19,9 @@ $minutos_comida_viernes = 30;
 $b_recuperar_comida = false;
 
 $db_host = 'localhost';
-$db_user = 'root';
-$db_pass = 'sinpass';
-$db_name = 'test_time';
+-$db_user = 'root';
+-$db_pass = 'sinpass';
+-$db_name = 'test_time';
 /**********************/
 
 
@@ -29,12 +29,11 @@ $ip = $_SERVER['REMOTE_ADDR'];
 $dia = date('Y-m-d');
 $ahora = date('H:i:s');
 
-mysql_connect($db_host,$db_user,$db_pass);
-mysql_select_db($db_name);
+$mysql = mysqli_connect($db_host,$db_user,$db_pass,$db_name);
 $s_botones = '';
 
-if($resultado = mysql_query("SELECT * FROM registro WHERE dia = '".$dia."' AND ip = '".$ip."';")){
-	if($fila = mysql_fetch_assoc($resultado)){
+if($resultado = mysqli_query($mysql,"SELECT * FROM registro WHERE dia = '".$dia."' AND ip = '".$ip."';")){
+	if($fila = mysqli_fetch_assoc($resultado)){
 		if($fila["comida"] == ""){
 			$s_botones = "<input type='button' onclick='javascript:window.location=\"?comida\"' value='Comida'/>";
 		}elseif($fila["vuelta"] == ""){
@@ -45,17 +44,17 @@ if($resultado = mysql_query("SELECT * FROM registro WHERE dia = '".$dia."' AND i
 		
 		if(isset($_GET["comida"]) && $fila["comida"] == ""){
 			$s_botones = "<input type='button' onclick='javascript:window.location=\"?vuelta\"' value='Vuelta'/>";
-			mysql_query("UPDATE registro SET comida = '".$ahora."' WHERE dia = '".$dia."' AND ip = '".$ip."';");
+			mysqli_query($mysql,"UPDATE registro SET comida = '".$ahora."' WHERE dia = '".$dia."' AND ip = '".$ip."';");
 		}
 		if(isset($_GET["vuelta"]) && $fila["vuelta"] == ""){
 			$s_botones = "<input type='button' onclick='javascript:window.location=\"?salida\"' value='Salida'/>";
-			mysql_query("UPDATE registro SET vuelta = '".$ahora."' WHERE dia = '".$dia."' AND ip = '".$ip."';");
+			mysqli_query($mysql,"UPDATE registro SET vuelta = '".$ahora."' WHERE dia = '".$dia."' AND ip = '".$ip."';");
 		}
 		if(isset($_GET["salida"])){
-			mysql_query("UPDATE registro SET salida = '".$ahora."' WHERE dia = '".$dia."' AND ip = '".$ip."';");
+			mysqli_query($mysql,"UPDATE registro SET salida = '".$ahora."' WHERE dia = '".$dia."' AND ip = '".$ip."';");
 		}
 	}else{
-		mysql_query("INSERT INTO registro (dia,ip,entrada) VALUES ('".$dia."','".$ip."','".$ahora."');");
+		mysqli_query($mysql,"INSERT INTO registro (dia,ip,entrada) VALUES ('".$dia."','".$ip."','".$ahora."');");
 	}
 }else{
 	die('Consulta no v&aacute;lida: ' . mysql_error());
@@ -63,13 +62,13 @@ if($resultado = mysql_query("SELECT * FROM registro WHERE dia = '".$dia."' AND i
 
 $s_tabla = "<center>No hay datos</center>";
 
-if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
+if($resultado = mysqli_query($mysql,"SELECT * FROM registro ORDER BY dia DESC;")){
 	$s_tabla = "\t<table border='1' width='100%'>".PHP_EOL."\t\t<tr><th>D&iacute;a</th><th>IP</th><th>Entrada</th><th>Comida</th><th>Salida</th><th>Horas</th></tr>".PHP_EOL;
 	$i = 0;
 	$lastday = 8;
 	$b_show_separador = false;
 	$tiempo_semana = array('horas'=>0,'minutos'=>0);
-	while($fila = mysql_fetch_assoc($resultado)){
+	while($fila = mysqli_fetch_assoc($resultado)){
 		$s_comida = "";
 		$s_total = "";
 		$comida_m = 0;
@@ -199,7 +198,7 @@ if($resultado = mysql_query("SELECT * FROM registro ORDER BY dia DESC;")){
 $s_botones = "<p style='text-align:right;'>".$s_botones."<input type='button' onclick='javascript:document.location.href = location.protocol+`//`+location.host+location.pathname' value='Recargar' /></p>".PHP_EOL;
 
 
-$a_interval = date_diff(date_create($primer_dia),date_create($ultimo_dia));
+$a_interval = date_diff(date_create(@$primer_dia),date_create(@$ultimo_dia));
 $diff_time = $a_interval->days;
 
 
